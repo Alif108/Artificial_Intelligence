@@ -1,7 +1,5 @@
 package n_Puzzle;
 
-import java.io.*;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class util {
@@ -11,15 +9,15 @@ public class util {
         System.out.print("Enter the size >");
 
         int size = sc.nextInt();
-        char[][] puzzle1 = new char[size][size];
-        char[][] puzzle2 = new char[size][size];
+        String[][] puzzle1 = new String[size][size];
+        String[][] puzzle2 = new String[size][size];
 
         System.out.println("Enter the initial state: ");
         for(int i=0; i<size; i++)
         {
             for(int j=0; j<size; j++)
             {
-                puzzle1[i][j] = sc.next().charAt(0);
+                puzzle1[i][j] = sc.next();
             }
         }
 
@@ -28,7 +26,7 @@ public class util {
         {
             for(int j=0; j<size; j++)
             {
-                puzzle2[i][j] = sc.next().charAt(0);
+                puzzle2[i][j] = sc.next();
             }
         }
 
@@ -36,6 +34,18 @@ public class util {
         Node goal = new Node(puzzle2, 0, 0, size, null);
 
         Puzzle p = new Puzzle(size, init, goal);
+
+        System.out.println("Hamming: ");
         p.simulate_hamming();
+
+        System.out.println("\n");
+
+        System.out.println("Manhattan: ");
+        p.simulate_manhattan();
+
+        System.out.println("\n");
+//
+        System.out.println("Linear Conflict");
+        p.simulate_lc();
     }
 }
