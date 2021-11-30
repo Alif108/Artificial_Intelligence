@@ -15,6 +15,60 @@ public class Puzzle {
         this.goal_state = goal_state;
     }
 
+    // gives the count of inversion in the init node
+    public int count_inversion()
+    {
+        // -- inversion count is the occurrence of smaller numbers after a certain number -- //
+        int inversion_count = 0;
+        String[][] init_matrix = init_state.get_matrix();
+        ArrayList<Integer> array_of_num = new ArrayList<>();
+
+        // converting to a 1d array
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if(init_matrix[i][j].equalsIgnoreCase("*"))
+                    array_of_num.add(0);
+                else
+                    array_of_num.add(Integer.valueOf(init_matrix[i][j]));
+            }
+        }
+
+        // iterating over the array
+        for (int i = 0; i < array_of_num.size(); i++) {
+            int x = array_of_num.get(i);
+            for (int j = i + 1; j < array_of_num.size(); j++) {
+                if (array_of_num.get(j) < x && array_of_num.get(j)!=0)                         // if there is any smaller number after index of x
+                {
+                    inversion_count += 1;
+                }
+            }
+        }
+        return inversion_count;
+    }
+
+    // returns if the initial puzzle is solvable or not
+    public boolean is_solvable()
+    {
+        if(size %2 != 0)                                // if grid size is odd
+        {
+            if(count_inversion() %2 == 0)               // if inversion is even -> solvable
+                return true;
+            else                                        // if inversion is odd -> not solvable
+                return false;
+        }
+        else                                            // if grid size is even
+        {
+            Position blank_pos = init_state.find("*");
+
+            if((blank_pos.x %2 == 0) && (count_inversion() %2 != 0))            // if blank is in even row and inversion count is odd -> solvable
+                return true;
+            else if((blank_pos.x %2 !=0 ) && (count_inversion() %2 == 0 ))      // if blank is in odd row and inversion count is even -> solvable
+                return true;
+            else
+                return false;
+        }
+    }
+
     // calculate hamming distance of two nodes
     public int hamming_distance(Node target, Node goal)
     {
@@ -71,8 +125,8 @@ public class Puzzle {
         return manhattan_distance(target, goal) + target.get_depth();
     }
 
-    // calculate linear conflict
-    public int linear_conflict(Node init, Node goal)
+    // calculate linear conflict for rows
+    public int row_linear_conflict(Node init, Node goal)
     {
         int conflict = 0;
         String[][] init_matrix = init.get_matrix();
@@ -81,154 +135,194 @@ public class Puzzle {
         {
             for(int j=0; j<size; j++)
             {
-                Position goal_pos = goal.find(init_matrix[i][j]);                           // getting the position of a number in goal matrix
-                if (goal_pos != null)
+                Position goal_pos_of_tj = goal.find(init_matrix[i][j]);
+
+                if(goal_pos_of_tj.x == i)
                 {
-                    if (goal_pos.x == i && goal_pos.y != j)                                 // if goal position is the same row, but not in the same column
+                    for (int k = j + 1; k < size; k++)                                  // iterate over the next columns
                     {
-                        for (int k = j + 1; k < size; k++)                                  // iterate over the next columns
+                        Position goal_pos_of_tk = goal.find(init_matrix[i][k]);
+
+                        if(goal_pos_of_tk.x == i)
                         {
-                            Position goal_pos2 = goal.find(init_matrix[i][k]);              // getting the next number position
-                            if(goal_pos2 != null)
-                            {
-                                if (goal_pos2.x == i && goal_pos2.y != k)                   // if the row matches, but not the column
-                                    conflict += 1;
-                            }
+                            if(goal_pos_of_tk.y < goal_pos_of_tj.y)
+                                conflict += 1;
                         }
                     }
                 }
-
             }
         }
         return conflict;
     }
 
+    // calculate column linear conflict for columns
+    public int column_linear_conflict(Node init, Node goal)
+    {
+        int conflict = 0;
+        String[][] init_matrix = init.get_matrix();
+
+        for(int i=0; i<size; i++)
+        {
+            for(int j=0; j<size; j++)
+            {
+                Position goal_pos_of_tj = goal.find(init_matrix[j][i]);
+
+                if(goal_pos_of_tj.y == i)
+                {
+                    for (int k = j + 1; k < size; k++)                                  // iterate over the next columns
+                    {
+                        Position goal_pos_of_tk = goal.find(init_matrix[k][i]);
+
+                        if(goal_pos_of_tk.y == i)
+                        {
+                            if(goal_pos_of_tk.x < goal_pos_of_tj.x)
+                                conflict += 1;
+                        }
+                    }
+                }
+            }
+        }
+        return conflict;
+    }
+
+    // calculate linear conflict
+    public int linear_conflict(Node init, Node goal)
+    {
+        return manhattan_distance(init, goal) + 2 * ( row_linear_conflict(init, goal) + column_linear_conflict(init, goal) );
+    }
+
     // calculate f_n using linear conflict + manhattan
     public int lc_f_n(Node init, Node goal)
     {
-        return manhattan_distance(init, goal) + 2 * linear_conflict(init, goal) + init.get_depth();
+        return linear_conflict(init, goal) + init.get_depth();         // f(n) = h(n) + g(n)
     }
-
-//    // returns the index of the Node having minimum f_val
-//    public int get_min_index(ArrayList<Node> set)
-//    {
-//        int idx = -1;
-//        int min = Integer.MAX_VALUE;
-//
-//        for(int i=0; i<set.size(); i++)
-//        {
-//            if(set.get(i).get_fval() < min)
-//            {
-//                min = set.get(i).get_fval();
-//                idx = i;
-//            }
-//        }
-//        return idx;
-//    }
 
     // solves using hamming distance
     public void simulate_hamming()
     {
-        int moves = 0;
-        PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
-        PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
+        if(is_solvable()) {
+            int cost = 0;
+            int moves = 0;
+            PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
+            PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
 
-        init_state.set_fval(hamming_f_n(init_state, goal_state));               // calculating f_n for initial state
-        open_set.add(init_state);                                               // adding initial state to open state
+            init_state.set_fval(hamming_f_n(init_state, goal_state));               // calculating f_n for initial state
+            open_set.add(init_state);                                               // adding initial state to open state
 
-        while (true)
-        {
-            Node target = open_set.poll();                                      // popping the element with the lowest f_n
+            while (true) {
+                Node target = open_set.poll();                                      // popping the element with the lowest f_n
+                cost += target.get_fval();
 
-            target.print();
-            System.out.print("\n");
+                target.print();
+                System.out.print("\n");
 
-            if(hamming_distance(target, goal_state) == 0)                       // if the hamming distance is 0, aka, the goal state has been reached
-                break;
+                if (hamming_distance(target, goal_state) == 0)                           // if the hamming distance is 0, aka, the goal state has been reached
+                    break;
 
-            ArrayList<Node> children = target.generate_children();              // generating the child nodes
+                ArrayList<Node> children = target.generate_children();                  // generating the child nodes
 
-            children.forEach(child ->                                           // for each child node
-            {
-                child.set_fval(hamming_f_n(child, goal_state));                 // set the value of f_n
-                open_set.add(child);                                            // add it to the open list
-            });
-            closed_set.add(target);                                             // add the popped node in the closed set
+                children.forEach(child ->                                               // for each child node
+                {
+                    if (!closed_set.contains(child))                                     // if closed set does not already contain child
+                    {
+                        child.set_fval(hamming_f_n(child, goal_state));                 // set the f_val
+                        open_set.add(child);                                            // add the child in the open list
+                    }
+                });
+                closed_set.add(target);                                                 // add the popped node in the closed set
 
-            moves += 1;
+                moves += 1;
+            }
+
+            System.out.println("Cost Using Hamming: " + cost);
+            System.out.println("Number of moves using Hamming: " + moves);
         }
-
-        System.out.println("Number of moves using Hamming: " + moves);
+        else
+            System.out.println("Puzzle is not solvable");
     }
 
     // solves using manhattan distance
     public void simulate_manhattan()
     {
-        int moves = 0;
-        PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
-        PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
+        if(is_solvable()) {
+            int cost = 0;
+            int moves = 0;
+            PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
+            PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
 
-        init_state.set_fval(manhattan_f_n(init_state, goal_state));                 // calculating f_n for initial state
-        open_set.add(init_state);                                                   // adding initial state to open state
+            init_state.set_fval(manhattan_f_n(init_state, goal_state));                 // calculating f_n for initial state
+            open_set.add(init_state);                                                   // adding initial state to open state
 
-        while (true)
-        {
-            Node target = open_set.poll();                                          // popping the node with minimum f_val
+            while (true) {
+                Node target = open_set.poll();                                          // popping the node with minimum f_val
+                cost += target.get_fval();
 
-            target.print();
-            System.out.print("\n");
+                target.print();
+                System.out.print("\n");
 
-            if(manhattan_distance(target, goal_state) == 0)                         // if manhattan distance is 0 aka, reached the goal state
-                break;
+                if (manhattan_distance(target, goal_state) == 0)                         // if manhattan distance is 0 aka, reached the goal state
+                    break;
 
-            ArrayList<Node> children = target.generate_children();                  // generating the children
+                ArrayList<Node> children = target.generate_children();                  // generating the children
 
-            children.forEach(child ->                                               // for each child
-            {
-                child.set_fval(manhattan_f_n(child, goal_state));                   // set the f_val
-                open_set.add(child);                                                // add the child in the open list
-            });
-            closed_set.add(target);                                                 // add the popped node in the closed set
+                children.forEach(child ->                                               // for each child
+                {
+                    if (!closed_set.contains(child))                                     // if closed set does not already contain child
+                    {
+                        child.set_fval(manhattan_f_n(child, goal_state));               // set the f_val
+                        open_set.add(child);                                            // add the child in the open list
+                    }
+                });
+                closed_set.add(target);                                                 // add the popped node in the closed set
 
-            moves += 1;
+                moves += 1;
+            }
+
+            System.out.println("Cost Using Manhattan: " + cost);
+            System.out.println("Number of moves using Manhattan: " + moves);
         }
-        System.out.println("Number of moves using Manhattan: " + moves);
+        else
+            System.out.println("Puzzle is not solvable");
     }
 
     // solves using linear conflict
     public void simulate_lc()
     {
-//        System.out.println(linear_conflict(init_state, goal_state));
+        if(is_solvable()) {
+            int cost = 0;
+            int moves = 0;
+            PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
+            PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
 
-        int moves = 0;
-        PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
-        PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
+            init_state.set_fval(lc_f_n(init_state, goal_state));                    // calculating f_n for initial state
+            open_set.add(init_state);                                               // adding initial state to open state
 
-        init_state.set_fval(hamming_f_n(init_state, goal_state));               // calculating f_n for initial state
-        open_set.add(init_state);                                               // adding initial state to open state
+            while (true) {
+                Node target = open_set.poll();                                      // popping the element with the lowest f_n
+                cost += target.get_fval();
 
-        while (true)
-        {
-            Node target = open_set.poll();                                      // popping the element with the lowest f_n
+                target.print();
+                System.out.print("\n");
 
-            target.print();
-            System.out.print("\n");
+                if (linear_conflict(target, goal_state) == 0)                       // if the hamming distance is 0, aka, the goal state has been reached
+                    break;
 
-            if(hamming_distance(target, goal_state) == 0)                       // if the hamming distance is 0, aka, the goal state has been reached
-                break;
+                ArrayList<Node> children = target.generate_children();              // generating the child nodes
 
-            ArrayList<Node> children = target.generate_children();              // generating the child nodes
+                children.forEach(child ->                                           // for each child node
+                {
+                    child.set_fval(lc_f_n(child, goal_state));                      // set the value of f_n
+                    open_set.add(child);                                            // add it to the open list
+                });
+                closed_set.add(target);                                             // add the popped node in the closed set
 
-            children.forEach(child ->                                           // for each child node
-            {
-                child.set_fval(hamming_f_n(child, goal_state));                 // set the value of f_n
-                open_set.add(child);                                            // add it to the open list
-            });
-            closed_set.add(target);                                             // add the popped node in the closed set
+                moves += 1;
+            }
 
-            moves += 1;
+            System.out.println("Cost Using Linear Conflict: " + cost);
+            System.out.println("Number of moves using Linear Conflict: " + moves);
         }
-
-        System.out.println("Number of moves using Linear Conflict: " + moves);
+        else
+            System.out.println("Puzzle not solvable");
     }
 }

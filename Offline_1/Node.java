@@ -66,16 +66,16 @@ public class Node {
    }
 
    // performs a single move of tile in the puzzle and returns the updated puzzle
-   public String[][] single_move(int blank_x, int blank_y, int x2, int y2)
+   public Node single_move(int blank_x, int blank_y, int x2, int y2)
    {
        if((x2>=0 && x2<n) && (y2>=0 && y2<n))
        {
-           String[][] temp = copy_puzzle(matrix);             // copying the current state of the puzzle
-           String blank = temp[blank_x][blank_y];             // keeping blank in a temp
-           temp[blank_x][blank_y] = temp[x2][y2];           // putting the other number in blank's spot
-           temp[x2][y2] = blank;                            // putting blank in the other number's spot
+           String[][] temp = copy_puzzle(matrix);               // copying the current state of the puzzle
+           String blank = temp[blank_x][blank_y];               // keeping blank in a temp
+           temp[blank_x][blank_y] = temp[x2][y2];               // putting the other number in blank's spot
+           temp[x2][y2] = blank;                                // putting blank in the other number's spot
 
-           return temp;
+           return new Node(temp, depth + 1, 0, n, this);            // generating a new child
        }
        return null;
    }
@@ -111,18 +111,16 @@ public class Node {
 
        moves.forEach(position ->
        {
-           String[][] child = single_move(blank_x, blank_y, position.x, position.y);
-           if(child != null)
+           Node child_node = single_move(blank_x, blank_y, position.x, position.y);
+           if(child_node != null)
            {
-               Node child_node = new Node(child, depth + 1, 0, n, this);            // generating a new child
-
-               if(this.parent!=null)                                        // if it is not the initial node
-               {
-                   if (!is_same_node(this.parent, child_node))              // if the parent and child are the same node, no need to add it on the list
-                       children.add(child_node);
-               }
-               else                                                         // if it is the initial node
-                   children.add(child_node);                                // adding the new child in the children list
+//               if(this.parent!=null)                                        // if it is not the initial node
+//               {
+//                   if (!is_same_node(this.parent, child_node))              // if the parent and child are the same node, no need to add it on the list
+//                       children.add(child_node);
+//               }
+//               else                                                         // if it is the initial node
+               children.add(child_node);                                // adding the new child in the children list
            }
        });
        return children;
@@ -141,20 +139,20 @@ public class Node {
        }
    }
 
-   // returns true if both node's matrices are same
-   public boolean is_same_node(Node x, Node y)
-   {
-       String[][] x_matrix = x.get_matrix();
-       String[][] y_matrix = y.get_matrix();
-
-       for(int i=0; i<n; i++)
-       {
-           for(int j=0; j<n; j++)
-           {
-               if(!x_matrix[i][j].equalsIgnoreCase(y_matrix[i][j]))       // if the characters are not same
-                   return false;
-           }
-       }
-       return true;
-   }
+//   // returns true if both node's matrices are same
+//   public boolean is_same_node(Node x, Node y)
+//   {
+//       String[][] x_matrix = x.get_matrix();
+//       String[][] y_matrix = y.get_matrix();
+//
+//       for(int i=0; i<n; i++)
+//       {
+//           for(int j=0; j<n; j++)
+//           {
+//               if(!x_matrix[i][j].equalsIgnoreCase(y_matrix[i][j]))       // if the characters are not same
+//                   return false;
+//           }
+//       }
+//       return true;
+//   }
 }
