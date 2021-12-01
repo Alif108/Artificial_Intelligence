@@ -41,6 +41,11 @@ public class Node {
        return depth;
    }
 
+   public Node get_parent()
+   {
+       return this.parent;
+   }
+
    public int get_fval()
    {
        return f_val;
@@ -114,12 +119,12 @@ public class Node {
            Node child_node = single_move(blank_x, blank_y, position.x, position.y);
            if(child_node != null)
            {
-//               if(this.parent!=null)                                        // if it is not the initial node
-//               {
-//                   if (!is_same_node(this.parent, child_node))              // if the parent and child are the same node, no need to add it on the list
-//                       children.add(child_node);
-//               }
-//               else                                                         // if it is the initial node
+               if(this.parent!=null)                                        // if it is not the initial node
+               {
+                   if (!is_same_node(this.parent, child_node))              // if the parent and child are the same node, no need to add it on the list
+                       children.add(child_node);
+               }
+               else                                                         // if it is the initial node
                children.add(child_node);                                // adding the new child in the children list
            }
        });
@@ -139,20 +144,20 @@ public class Node {
        }
    }
 
-//   // returns true if both node's matrices are same
-//   public boolean is_same_node(Node x, Node y)
-//   {
-//       String[][] x_matrix = x.get_matrix();
-//       String[][] y_matrix = y.get_matrix();
-//
-//       for(int i=0; i<n; i++)
-//       {
-//           for(int j=0; j<n; j++)
-//           {
-//               if(!x_matrix[i][j].equalsIgnoreCase(y_matrix[i][j]))       // if the characters are not same
-//                   return false;
-//           }
-//       }
-//       return true;
-//   }
+   // returns true if both node's matrices are same
+   public boolean is_same_node(Node x, Node y)
+   {
+       String[][] x_matrix = x.get_matrix();
+       String[][] y_matrix = y.get_matrix();
+
+       for(int i=0; i<n; i++)
+       {
+           for(int j=0; j<n; j++)
+           {
+               if(!x_matrix[i][j].equalsIgnoreCase(y_matrix[i][j]))       // if the characters are not same
+                   return false;
+           }
+       }
+       return true;
+   }
 }

@@ -69,6 +69,26 @@ public class Puzzle {
         }
     }
 
+    // prints the path
+    public void print_path(Node state)
+    {
+        ArrayList<Node> path = new ArrayList<>();
+        path.add(state);                                        // adding the last node
+
+        while(state.get_parent() != null)
+        {
+            path.add(state.get_parent());                       // adding the parent
+            state = state.get_parent();                         // setting pointer to parent
+        }
+
+        Collections.reverse(path);                              // reversing the path
+
+        for(int i=0; i< path.size(); i++) {
+            path.get(i).print();
+            System.out.print("\n");
+        }
+    }
+
     // calculate hamming distance of two nodes
     public int hamming_distance(Node target, Node goal)
     {
@@ -202,7 +222,9 @@ public class Puzzle {
     {
         if(is_solvable()) {
             int cost = 0;
-            int moves = 0;
+            int expanded_nodes = 0;
+            int explored_nodes = 0;
+            Node final_node;
             PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
             PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
 
@@ -210,15 +232,25 @@ public class Puzzle {
             open_set.add(init_state);                                               // adding initial state to open state
 
             while (true) {
+
+                // ---- //
+//                System.out.println("Open set before iteration");
+//                open_set.forEach(node ->
+//                {
+//                    node.print();
+//                    System.out.println("f_val: " + node.get_fval());
+//                });
+//                System.out.print("\n");
+                // --- //
+
                 Node target = open_set.poll();                                      // popping the element with the lowest f_n
                 cost += target.get_fval();
 
-                target.print();
-                System.out.print("\n");
-
                 if (hamming_distance(target, goal_state) == 0)                           // if the hamming distance is 0, aka, the goal state has been reached
+                {
+                    final_node = target;
                     break;
-
+                }
                 ArrayList<Node> children = target.generate_children();                  // generating the child nodes
 
                 children.forEach(child ->                                               // for each child node
@@ -229,13 +261,15 @@ public class Puzzle {
                         open_set.add(child);                                            // add the child in the open list
                     }
                 });
+                explored_nodes += children.size();                                  // all the children are explored
                 closed_set.add(target);                                                 // add the popped node in the closed set
 
-                moves += 1;
+                expanded_nodes += 1;
             }
-
+            print_path(final_node);
             System.out.println("Cost Using Hamming: " + cost);
-            System.out.println("Number of moves using Hamming: " + moves);
+            System.out.println("Explored Nodes: " + explored_nodes);
+            System.out.println("Expanded Nodes: " + expanded_nodes);
         }
         else
             System.out.println("Puzzle is not solvable");
@@ -246,7 +280,9 @@ public class Puzzle {
     {
         if(is_solvable()) {
             int cost = 0;
-            int moves = 0;
+            int expanded_nodes = 0;
+            int explored_nodes = 0;
+            Node final_node;
             PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
             PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
 
@@ -255,14 +291,14 @@ public class Puzzle {
 
             while (true) {
                 Node target = open_set.poll();                                          // popping the node with minimum f_val
+
                 cost += target.get_fval();
 
-                target.print();
-                System.out.print("\n");
-
                 if (manhattan_distance(target, goal_state) == 0)                         // if manhattan distance is 0 aka, reached the goal state
+                {
+                    final_node = target;
                     break;
-
+                }
                 ArrayList<Node> children = target.generate_children();                  // generating the children
 
                 children.forEach(child ->                                               // for each child
@@ -273,13 +309,15 @@ public class Puzzle {
                         open_set.add(child);                                            // add the child in the open list
                     }
                 });
+                explored_nodes += children.size();                                  // all the children are explored
                 closed_set.add(target);                                                 // add the popped node in the closed set
 
-                moves += 1;
+                expanded_nodes += 1;
             }
-
+            print_path(final_node);
             System.out.println("Cost Using Manhattan: " + cost);
-            System.out.println("Number of moves using Manhattan: " + moves);
+            System.out.println("Explored Nodes: " + explored_nodes);
+            System.out.println("Expanded Nodes: " + expanded_nodes);
         }
         else
             System.out.println("Puzzle is not solvable");
@@ -290,7 +328,9 @@ public class Puzzle {
     {
         if(is_solvable()) {
             int cost = 0;
-            int moves = 0;
+            int expanded_nodes = 0;
+            int explored_nodes = 0;
+            Node final_node;
             PriorityQueue<Node> open_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
             PriorityQueue<Node> closed_set = new PriorityQueue<Node>(Comparator.comparing(Node::get_fval));
 
@@ -301,26 +341,30 @@ public class Puzzle {
                 Node target = open_set.poll();                                      // popping the element with the lowest f_n
                 cost += target.get_fval();
 
-                target.print();
-                System.out.print("\n");
-
-                if (linear_conflict(target, goal_state) == 0)                       // if the hamming distance is 0, aka, the goal state has been reached
+                if (linear_conflict(target, goal_state) == 0)                       // if the linear conflict is 0, aka, the goal state has been reached
+                {
+                    final_node = target;
                     break;
-
+                }
                 ArrayList<Node> children = target.generate_children();              // generating the child nodes
 
                 children.forEach(child ->                                           // for each child node
                 {
-                    child.set_fval(lc_f_n(child, goal_state));                      // set the value of f_n
-                    open_set.add(child);                                            // add it to the open list
+                    if (!closed_set.contains(child))                                     // if closed set does not already contain child
+                    {
+                        child.set_fval(lc_f_n(child, goal_state));                 // set the f_val
+                        open_set.add(child);                                            // add the child in the open list
+                    }
                 });
+                explored_nodes += children.size();                                  // all the children are explored
                 closed_set.add(target);                                             // add the popped node in the closed set
 
-                moves += 1;
+                expanded_nodes += 1;                                                // +1 expanded node
             }
-
+            print_path(final_node);
             System.out.println("Cost Using Linear Conflict: " + cost);
-            System.out.println("Number of moves using Linear Conflict: " + moves);
+            System.out.println("Explored Nodes: " + explored_nodes);
+            System.out.println("Expanded Nodes: " + expanded_nodes);
         }
         else
             System.out.println("Puzzle not solvable");
