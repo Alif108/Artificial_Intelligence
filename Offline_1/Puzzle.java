@@ -244,7 +244,7 @@ public class Puzzle {
                 // --- //
 
                 Node target = open_set.poll();                                      // popping the element with the lowest f_n
-                cost += target.get_fval();
+                cost = target.get_fval();
 
                 if (hamming_distance(target, goal_state) == 0)                           // if the hamming distance is 0, aka, the goal state has been reached
                 {
@@ -292,7 +292,7 @@ public class Puzzle {
             while (true) {
                 Node target = open_set.poll();                                          // popping the node with minimum f_val
 
-                cost += target.get_fval();
+                cost = target.get_fval();
 
                 if (manhattan_distance(target, goal_state) == 0)                         // if manhattan distance is 0 aka, reached the goal state
                 {
@@ -339,7 +339,7 @@ public class Puzzle {
 
             while (true) {
                 Node target = open_set.poll();                                      // popping the element with the lowest f_n
-                cost += target.get_fval();
+                cost = target.get_fval();
 
                 if (linear_conflict(target, goal_state) == 0)                       // if the linear conflict is 0, aka, the goal state has been reached
                 {
@@ -367,6 +367,6 @@ public class Puzzle {
             System.out.println("Expanded Nodes: " + expanded_nodes);
         }
         else
-            System.out.println("Puzzle not solvable");
+            System.out.println("Puzzle is not solvable");
     }
 }

@@ -24,13 +24,39 @@ public class util {
             }
         }
 
-        System.out.println("Enter the goal state: ");
+        // -- user input of goal state -- //
+//        System.out.println("Enter the goal state: ");
+//        for(int i=0; i<size; i++)
+//        {
+//            for(int j=0; j<size; j++)
+//            {
+//                puzzle2[i][j] = sc.next();
+//            }
+//        }
+
+        // -- default goal state -- //
+        int entry = 1;
         for(int i=0; i<size; i++)
         {
             for(int j=0; j<size; j++)
             {
-                puzzle2[i][j] = sc.next();
+                if(i==size-1 && j==size-1)
+                    puzzle2[i][j] = "*";
+                else {
+                    puzzle2[i][j] = String.valueOf(entry);
+                    entry += 1;
+                }
             }
+        }
+
+        System.out.println("Goal State: ");
+        for(int i=0; i<size; i++)
+        {
+            for(int j=0; j<size; j++)
+            {
+                System.out.print(puzzle2[i][j] + " ");
+            }
+            System.out.print("\n");
         }
 
 //        // redirecting output to file
@@ -63,7 +89,7 @@ public class util {
 
         Puzzle p = new Puzzle(size, init, goal);
 
-        System.out.println("###################\n");
+        System.out.println("\n###################\n");
         System.out.println("Hamming: ");
         p.simulate_hamming();
 
