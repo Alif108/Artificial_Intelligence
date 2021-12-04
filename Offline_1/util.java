@@ -12,15 +12,19 @@ public class util {
         System.out.print("Enter the size >");
 
         int size = sc.nextInt();
-        String[][] puzzle1 = new String[size][size];
-        String[][] puzzle2 = new String[size][size];
+        int[][] puzzle1 = new int[size][size];
+        int[][] puzzle2 = new int[size][size];
 
         System.out.println("Enter the initial state: ");
         for(int i=0; i<size; i++)
         {
             for(int j=0; j<size; j++)
             {
-                puzzle1[i][j] = sc.next();
+                String input = sc.next();
+                if(input.equalsIgnoreCase("*"))
+                    puzzle1[i][j] = 0;
+                else
+                    puzzle1[i][j] = Integer.parseInt(input);
             }
         }
 
@@ -41,9 +45,9 @@ public class util {
             for(int j=0; j<size; j++)
             {
                 if(i==size-1 && j==size-1)
-                    puzzle2[i][j] = "*";
+                    puzzle2[i][j] = 0;
                 else {
-                    puzzle2[i][j] = String.valueOf(entry);
+                    puzzle2[i][j] = entry;
                     entry += 1;
                 }
             }
@@ -54,7 +58,10 @@ public class util {
         {
             for(int j=0; j<size; j++)
             {
-                System.out.print(puzzle2[i][j] + " ");
+                if(puzzle2[i][j] == 0)
+                    System.out.print("*");
+                else
+                    System.out.print(puzzle2[i][j] + " ");
             }
             System.out.print("\n");
         }

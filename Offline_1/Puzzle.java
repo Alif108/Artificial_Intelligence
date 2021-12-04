@@ -20,16 +20,13 @@ public class Puzzle {
     {
         // -- inversion count is the occurrence of smaller numbers after a certain number -- //
         int inversion_count = 0;
-        String[][] init_matrix = init_state.get_matrix();
+        int[][] init_matrix = init_state.get_matrix();
         ArrayList<Integer> array_of_num = new ArrayList<>();
 
         // converting to a 1d array
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                if(init_matrix[i][j].equalsIgnoreCase("*"))
-                    array_of_num.add(0);
-                else
-                    array_of_num.add(Integer.valueOf(init_matrix[i][j]));
+                    array_of_num.add(init_matrix[i][j]);
             }
         }
 
@@ -58,7 +55,7 @@ public class Puzzle {
         }
         else                                            // if grid size is even
         {
-            Position blank_pos = init_state.find("*");
+            Position blank_pos = init_state.find(0);
 
             if((blank_pos.x %2 == 0) && (count_inversion() %2 != 0))            // if blank is in even row and inversion count is odd -> solvable
                 return true;
@@ -81,9 +78,14 @@ public class Puzzle {
             state = state.get_parent();                         // setting pointer to parent
         }
 
-        Collections.reverse(path);                              // reversing the path
-
-        for(int i=0; i< path.size(); i++) {
+//        Collections.reverse(path);                              // reversing the path
+//
+//        for(int i=0; i< path.size(); i++) {
+//            path.get(i).print();
+//            System.out.print("\n");
+//        }
+        for(int i=path.size()-1; i>=0; i--)
+        {
             path.get(i).print();
             System.out.print("\n");
         }
@@ -93,15 +95,15 @@ public class Puzzle {
     public int hamming_distance(Node target, Node goal)
     {
         int sum = 0;
-        String[][] target_matrix = target.get_matrix();
-        String[][] goal_matrix = goal.get_matrix();
+        int[][] target_matrix = target.get_matrix();
+        int[][] goal_matrix = goal.get_matrix();
 
         for(int i=0; i<size; i++)
         {
             for(int j=0; j<size; j++)
             {
                 // if the entry is not blank and not same as the goal entry
-                if(!target_matrix[i][j].equalsIgnoreCase(goal_matrix[i][j]) && !target_matrix[i][j].equalsIgnoreCase("*"))
+                if((target_matrix[i][j] != goal_matrix[i][j]) && (target_matrix[i][j] !=0 ))
                     sum += 1;
             }
         }
@@ -119,14 +121,14 @@ public class Puzzle {
     {
         int sum = 0;
 
-        String[][] target_matrix = target.get_matrix();
+        int[][] target_matrix = target.get_matrix();
 
         for(int i=0; i<size; i++)
         {
             for(int j=0; j<size; j++)
             {
-                String num = target_matrix[i][j];                                         // taking a number of the puzzle
-                if(!num.equalsIgnoreCase("*"))                                   // if the number is not a blank
+                int num = target_matrix[i][j];                                          // taking a number of the puzzle
+                if(num != 0)                                                            // if the number is not a blank
                 {
                     Position pos = goal.find(num);                                      // getting the position of the number in goal matrix
                     int goal_x = pos.x;                                                 // getting the x value
@@ -142,14 +144,18 @@ public class Puzzle {
     // calculate f_n using manhattan distance
     public int manhattan_f_n(Node target, Node goal)
     {
-        return manhattan_distance(target, goal) + target.get_depth();
+        return manhattan_distance(target, goal) + target.get_depth();               // f(n) = g(n) + h(n)
     }
 
     // calculate linear conflict for rows
     public int row_linear_conflict(Node init, Node goal)
     {
+        // 2 tiles tⱼ and tₖ are in linear conflict if tⱼ and tₖ are both in the same line,
+        // the goal positions of tⱼ and tₖ are both in that line, tⱼ is to the right of tₖ,
+        // and the goal position of tⱼ is to the left of the goal position of tₖ.
+
         int conflict = 0;
-        String[][] init_matrix = init.get_matrix();
+        int[][] init_matrix = init.get_matrix();
 
         for(int i=0; i<size; i++)
         {
@@ -161,6 +167,9 @@ public class Puzzle {
                 {
                     for (int k = j + 1; k < size; k++)                                  // iterate over the next columns
                     {
+                        if(init_matrix[i][j]==0 || init_matrix[i][k]==0)                // if any of the entries are blank
+                            continue;
+
                         Position goal_pos_of_tk = goal.find(init_matrix[i][k]);
 
                         if(goal_pos_of_tk.x == i)
@@ -179,29 +188,29 @@ public class Puzzle {
     public int column_linear_conflict(Node init, Node goal)
     {
         int conflict = 0;
-        String[][] init_matrix = init.get_matrix();
-
-        for(int i=0; i<size; i++)
-        {
-            for(int j=0; j<size; j++)
-            {
-                Position goal_pos_of_tj = goal.find(init_matrix[j][i]);
-
-                if(goal_pos_of_tj.y == i)
-                {
-                    for (int k = j + 1; k < size; k++)                                  // iterate over the next columns
-                    {
-                        Position goal_pos_of_tk = goal.find(init_matrix[k][i]);
-
-                        if(goal_pos_of_tk.y == i)
-                        {
-                            if(goal_pos_of_tk.x < goal_pos_of_tj.x)
-                                conflict += 1;
-                        }
-                    }
-                }
-            }
-        }
+//        int[][] init_matrix = init.get_matrix();
+//
+//        for(int i=0; i<size; i++)
+//        {
+//            for(int j=0; j<size; j++)
+//            {
+//                Position goal_pos_of_tj = goal.find(init_matrix[j][i]);
+//
+//                if(goal_pos_of_tj.y == i)
+//                {
+//                    for (int k = j + 1; k < size; k++)                                  // iterate over the next columns
+//                    {
+//                        Position goal_pos_of_tk = goal.find(init_matrix[k][i]);
+//
+//                        if(goal_pos_of_tk.y == i)
+//                        {
+//                            if(goal_pos_of_tk.x < goal_pos_of_tj.x)
+//                                conflict += 1;
+//                        }
+//                    }
+//                }
+//            }
+//        }
         return conflict;
     }
 
@@ -233,36 +242,26 @@ public class Puzzle {
 
             while (true) {
 
-                // ---- //
-//                System.out.println("Open set before iteration");
-//                open_set.forEach(node ->
-//                {
-//                    node.print();
-//                    System.out.println("f_val: " + node.get_fval());
-//                });
-//                System.out.print("\n");
-                // --- //
-
                 Node target = open_set.poll();                                      // popping the element with the lowest f_n
                 cost = target.get_fval();
 
-                if (hamming_distance(target, goal_state) == 0)                           // if the hamming distance is 0, aka, the goal state has been reached
+                if (hamming_distance(target, goal_state) == 0)                      // if the hamming distance is 0, aka, the goal state has been reached
                 {
                     final_node = target;
                     break;
                 }
-                ArrayList<Node> children = target.generate_children();                  // generating the child nodes
+                ArrayList<Node> children = target.generate_children();              // generating the child nodes
 
-                children.forEach(child ->                                               // for each child node
+                children.forEach(child ->                                           // for each child node
                 {
-                    if (!closed_set.contains(child))                                     // if closed set does not already contain child
+                    if (!closed_set.contains(child))                                // if closed set does not already contain child
                     {
-                        child.set_fval(hamming_f_n(child, goal_state));                 // set the f_val
-                        open_set.add(child);                                            // add the child in the open list
+                        child.set_fval(hamming_f_n(child, goal_state));             // set the f_val
+                        open_set.add(child);                                        // add the child in the open list
                     }
                 });
                 explored_nodes += children.size();                                  // all the children are explored
-                closed_set.add(target);                                                 // add the popped node in the closed set
+                closed_set.add(target);                                             // add the popped node in the closed set
 
                 expanded_nodes += 1;
             }
@@ -309,7 +308,7 @@ public class Puzzle {
                         open_set.add(child);                                            // add the child in the open list
                     }
                 });
-                explored_nodes += children.size();                                  // all the children are explored
+                explored_nodes += children.size();                                      // all the children are explored
                 closed_set.add(target);                                                 // add the popped node in the closed set
 
                 expanded_nodes += 1;
@@ -350,10 +349,10 @@ public class Puzzle {
 
                 children.forEach(child ->                                           // for each child node
                 {
-                    if (!closed_set.contains(child))                                     // if closed set does not already contain child
+                    if (!closed_set.contains(child))                                // if closed set does not already contain child
                     {
-                        child.set_fval(lc_f_n(child, goal_state));                 // set the f_val
-                        open_set.add(child);                                            // add the child in the open list
+                        child.set_fval(lc_f_n(child, goal_state));                  // set the f_val
+                        open_set.add(child);                                        // add the child in the open list
                     }
                 });
                 explored_nodes += children.size();                                  // all the children are explored

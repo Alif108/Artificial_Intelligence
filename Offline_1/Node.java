@@ -16,13 +16,13 @@ class Position
 
 public class Node {
 
-   private String[][] matrix;
+   private int[][] matrix;
    private int depth;
    private int f_val;
    private int n;
    private Node parent;
 
-   Node(String[][] matrix, int depth, int f_val, int n, Node parent)
+   Node(int[][] matrix, int depth, int f_val, int n, Node parent)
    {
        this.matrix = matrix;
        this.depth = depth;
@@ -31,7 +31,7 @@ public class Node {
        this.parent = parent;
    }
 
-   public String[][] get_matrix()
+   public int[][] get_matrix()
    {
        return matrix;
    }
@@ -57,13 +57,13 @@ public class Node {
    }
 
    // returns the position of a number in the matrix
-   public Position find(String x)
+   public Position find(int x)
    {
        for(int i=0; i<n; i++)
        {
            for(int j=0; j<n; j++)
            {
-               if (matrix[i][j].equalsIgnoreCase(x))
+               if (matrix[i][j] == x)
                    return (new Position(i, j));
            }
        }
@@ -75,8 +75,8 @@ public class Node {
    {
        if((x2>=0 && x2<n) && (y2>=0 && y2<n))
        {
-           String[][] temp = copy_puzzle(matrix);               // copying the current state of the puzzle
-           String blank = temp[blank_x][blank_y];               // keeping blank in a temp
+           int[][] temp = copy_puzzle(matrix);                  // copying the current state of the puzzle
+           int blank = temp[blank_x][blank_y];                  // keeping blank in a temp
            temp[blank_x][blank_y] = temp[x2][y2];               // putting the other number in blank's spot
            temp[x2][y2] = blank;                                // putting blank in the other number's spot
 
@@ -86,14 +86,14 @@ public class Node {
    }
 
    // copies one matrix to another and returns the new one
-   public String[][] copy_puzzle(String[][] puzzle)
+   public int[][] copy_puzzle(int[][] puzzle)
    {
-       String[][] clone = new String[n][n];
+       int[][] clone = new int[n][n];
 
        for(int i=0; i<n; i++)
        {
            for(int j=0; j<n; j++) {
-               clone[i][j] = new String(puzzle[i][j]);
+               clone[i][j] = puzzle[i][j];
            }
        }
        return clone;
@@ -104,7 +104,7 @@ public class Node {
    {
        ArrayList<Node> children = new ArrayList<Node>();
 
-       Position blank = find("*");                                          // getting the position of "*"
+       Position blank = find(0);                                          // getting the position of "*"
        int blank_x = blank.x;                                               // x position of blank
        int blank_y = blank.y;                                               // y position of blank
 
@@ -138,7 +138,10 @@ public class Node {
        {
            for(int j=0; j<n; j++)
            {
-               System.out.print(matrix[i][j] + " ");
+               if(matrix[i][j] == 0)
+                   System.out.print("* ");
+               else
+                System.out.print(matrix[i][j] + " ");
            }
            System.out.print("\n");
        }
@@ -147,14 +150,14 @@ public class Node {
    // returns true if both node's matrices are same
    public boolean is_same_node(Node x, Node y)
    {
-       String[][] x_matrix = x.get_matrix();
-       String[][] y_matrix = y.get_matrix();
+       int[][] x_matrix = x.get_matrix();
+       int[][] y_matrix = y.get_matrix();
 
        for(int i=0; i<n; i++)
        {
            for(int j=0; j<n; j++)
            {
-               if(!x_matrix[i][j].equalsIgnoreCase(y_matrix[i][j]))       // if the characters are not same
+               if(x_matrix[i][j] != y_matrix[i][j])       // if the characters are not same
                    return false;
            }
        }

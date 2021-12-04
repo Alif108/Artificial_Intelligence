@@ -1,4 +1,0 @@
-#
-check for : 2 3 1 *
-
-# what if g(n) becomes greater than h(n) as we go deep?
