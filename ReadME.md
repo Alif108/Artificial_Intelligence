@@ -2,6 +2,6 @@ This repository contains the offlines (assignments) I did in my CSE_318 (Artific
 
 
 
-##Offline_1
+## Offline_1
 
 Implementing n-puzzle problem with A* search algorithm using different heuristics (Hamming Distance, Manhattan Distance, Linear Conflict).
