@@ -3,12 +3,15 @@ import java.util.ArrayList;
 public class Board {
 
     public int no_of_bins;
+    public int stones_each_bin;
     public int[] score_bins;
     public int[] p1_bins;
     public int[] p2_bins;
 
-    public Board()
+    public Board(int no_of_bins, int stones_each_bin)
     {
+        this.no_of_bins = no_of_bins;
+        this.stones_each_bin = stones_each_bin;
         reset();
     }
 
@@ -16,6 +19,7 @@ public class Board {
     public Board(Board another_board)
     {
         this.no_of_bins = another_board.no_of_bins;
+        this.stones_each_bin = another_board.stones_each_bin;
         this.score_bins = new int[2];
         this.p1_bins = new int[no_of_bins];
         this.p2_bins = new int[no_of_bins];
@@ -32,15 +36,14 @@ public class Board {
 
     public void reset()
     {
-        no_of_bins = 6;
         score_bins = new int[2];                    // 2 score bins
         p1_bins = new int[no_of_bins];              // 6 bins each
         p2_bins = new int[no_of_bins];
 
         for (int i=0; i<no_of_bins; i++)
         {
-            p1_bins[i] = 4;                         // 4 stones in each bin
-            p2_bins[i] = 4;
+            p1_bins[i] = stones_each_bin;                         // 4 stones in each bin
+            p2_bins[i] = stones_each_bin;
         }
 
         score_bins[0] = 0;                          // score is 0 initially
@@ -170,9 +173,10 @@ public class Board {
                 play_again = true;
             }
 
+            // swapping the turn
             int[] temp_bins = self_bins;
             self_bins = opponent_bins;
-            opponent_bins = temp_bins;                      // swapping the turn
+            opponent_bins = temp_bins;
             bin = 1;
         }
 
@@ -297,12 +301,6 @@ public class Board {
                     System.out.println("This move is not legal");
                     move = current_player.choose_move(this);
                 }
-//                if(!is_legal_move(current_player, move))
-//                {
-//                    System.out.println("This move is not legal");
-//                    System.out.println(move);
-//                    return;
-//                }
                 bonus_move = single_move(current_player, move);
 
                 if(bonus_move)

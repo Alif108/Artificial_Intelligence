@@ -52,15 +52,14 @@ public class Player {
         }
         else if(player_type == 1)
         {
-//            int optimal_move = minimax_move(board, depth_limit);                        // simulates with minimax without pruning
-            int optimal_move = alpha_beta_move(board, depth_limit);                     // simulate with alpha beta pruning
+            int optimal_move = minimax_move(board, depth_limit);                        // simulates with minimax without pruning
+//            int optimal_move = alpha_beta_move(board, depth_limit);                     // simulate with alpha beta pruning
 
             System.out.println("Player Move: " + optimal_move);
             return optimal_move;
         }
         return 0;
     }
-
 
 //    public Optimal_Move minimax_move(Board board, int depth)
 //    {
@@ -237,6 +236,14 @@ public class Player {
             {
                 return turn.stones_diff(board);
             }
+            else if(heuristic_choice == 4)
+            {
+                return turn.close_to_victory(board);
+            }
+            else if(heuristic_choice == 5)
+            {
+                return turn.close_to_storage(board);
+            }
             else
                 return -1;
         }
@@ -275,6 +282,14 @@ public class Player {
             {
                 return turn.stones_diff(board);
             }
+            else if(heuristic_choice == 4)
+            {
+                return turn.close_to_victory(board);
+            }
+            else if(heuristic_choice == 5)
+            {
+                return turn.close_to_storage(board);
+            }
             else
                 return -1;
         }
@@ -299,7 +314,7 @@ public class Player {
 
 
 
-    //// ---------------------------------- ALPHA BETA PRUNING ------------------------- ////
+    //// ------------------------ ALPHA BETA PRUNING ------------------------- ////
 
     public int alpha_beta_move(Board board, int depth)
     {
@@ -348,6 +363,14 @@ public class Player {
             {
                 return turn.stones_diff(board);
             }
+            else if(heuristic_choice == 4)
+            {
+                return turn.close_to_victory(board);
+            }
+            else if(heuristic_choice == 5)
+            {
+                return turn.close_to_storage(board);
+            }
             else
                 return -1;
         }
@@ -391,6 +414,14 @@ public class Player {
             else if(heuristic_choice == 3)
             {
                 return turn.stones_diff(board);
+            }
+            else if(heuristic_choice == 4)
+            {
+                return turn.close_to_victory(board);
+            }
+            else if(heuristic_choice == 5)
+            {
+                return turn.close_to_storage(board);
             }
             else
                 return -1;
@@ -465,5 +496,92 @@ public class Player {
         int storage_diff = self_storage - opponent_storage;
 
         return 100 * score_diff + 50 * storage_diff;
+    }
+
+    public int close_to_victory(Board board)
+    {
+        // measures how close a player is to victory depending on
+        // if his storage is already close to containing half of total number of stones
+
+        int no_of_bins = board.no_of_bins;                                      // e.g. 6
+        int stones_each_bin = board.stones_each_bin;                            // e.g. 4
+
+        int total_stones = no_of_bins * stones_each_bin * 2;                    // e.g. 6 * 4 * 2 = 48
+        int self_stones = 0;
+
+        if(player_num == 1)
+        {
+            self_stones = board.score_bins[0];
+        }
+        else
+            self_stones = board.score_bins[1];
+
+        // if goal contains more than half of total stones
+        if(self_stones > total_stones/2)
+            return 100;
+
+        // if goal contains stones in range [total_stones/2-stones_each_bin, total_stones]
+        // e.g. [20, 48]
+        else if((self_stones>(total_stones/2-stones_each_bin)) && (self_stones<(total_stones/2)) )
+            return 50;
+
+        else
+            return 0;
+    }
+
+    public int close_to_storage(Board board)
+    {
+        int stones;
+        int stones_close_to_storage = 0;
+        int[] self_bins;
+
+        if(player_num == 1) {
+            self_bins = board.p1_bins;
+        }
+        else {
+            self_bins = board.p2_bins;
+        }
+        for(int i=0; i<self_bins.length; i++)
+        {
+            stones = self_bins[i];
+            int self_bins_limit = (board.no_of_bins)-i;             // limit for a bin to overflow      // i.e. bin 2 can hold 5 bins that won't overflow  // 6-(2-1) = 5
+
+            if(stones < self_bins_limit)
+            {
+                stones_close_to_storage += stones;
+            }
+            else
+            {
+                int stones_left = stones;
+
+                stones_left -= self_bins_limit;
+                stones_close_to_storage += self_bins_limit;
+
+                int iteration = 0;
+
+                while (stones_left > 0)
+                {
+                    if(iteration%2==0)
+                    {
+                        stones_left -= board.no_of_bins;
+                    }
+                    else
+                    {
+                        if(stones_left > board.no_of_bins+1)
+                        {
+                            stones_left -= (board.no_of_bins + 1);
+                            stones_close_to_storage += (board.no_of_bins+1);
+                        }
+                        else
+                        {
+                            stones_close_to_storage += stones_left;
+                            stones_left = 0;
+                        }
+                    }
+                    iteration++;
+                }
+            }
+        }
+        return stones_close_to_storage;
     }
 }
