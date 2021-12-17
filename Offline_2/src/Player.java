@@ -52,8 +52,8 @@ public class Player {
         }
         else if(player_type == 1)
         {
-            int optimal_move = minimax_move(board, depth_limit);                        // simulates with minimax without pruning
-//            int optimal_move = alpha_beta_move(board, depth_limit);                     // simulate with alpha beta pruning
+//            int optimal_move = minimax_move(board, depth_limit);                        // simulates with minimax without pruning
+            int optimal_move = alpha_beta_move(board, depth_limit);                     // simulate with alpha beta pruning
 
             System.out.println("Player Move: " + optimal_move);
             return optimal_move;
@@ -244,6 +244,14 @@ public class Player {
             {
                 return turn.close_to_storage(board);
             }
+            else if(heuristic_choice == 6)
+            {
+                return turn.captured_stones(board);
+            }
+            else if(heuristic_choice == 7)
+            {
+                return turn.additional_move_earned(board);
+            }
             else
                 return -1;
         }
@@ -290,23 +298,31 @@ public class Player {
             {
                 return turn.close_to_storage(board);
             }
+            else if(heuristic_choice == 6)
+            {
+                return turn.captured_stones(board);
+            }
+            else if(heuristic_choice == 7)
+            {
+                return turn.additional_move_earned(board);
+            }
             else
                 return -1;
         }
         else
         {
-            int score = Integer.MAX_VALUE;                                                      // score set to +INFINITY
+            int score = Integer.MAX_VALUE;                                                                  // score set to +INFINITY
 
-            ArrayList<Integer>possible_moves = board.possible_moves(this);                  // taking all the possible moves
+            ArrayList<Integer>possible_moves = board.possible_moves(this);                              // taking all the possible moves
 
-            for(int i=0; i<possible_moves.size(); i++)                                          // for each move in possible moves
+            for(int i=0; i<possible_moves.size(); i++)                                                      // for each move in possible moves
             {
-                Board new_board = new Board(board);                                             // copying the current board to a new board
-                new_board.single_move(this, possible_moves.get(i));                         // giving the move on the new board
+                Board new_board = new Board(board);                                                         // copying the current board to a new board
+                new_board.single_move(this, possible_moves.get(i));                                     // giving the move on the new board
 
-                opponent = new Player(opponent_num, player_type, depth_limit, heuristic_choice);                  // taking the opponent player object
-                int temp_score = opponent.max_value(new_board, depth-1, turn);              // opponent gives max move
-                score = Math.min(score, temp_score);                                            // player selects the minimum of the scores
+                opponent = new Player(opponent_num, player_type, depth_limit, heuristic_choice);            // taking the opponent player object
+                int temp_score = opponent.max_value(new_board, depth-1, turn);                          // opponent gives max move
+                score = Math.min(score, temp_score);                                                            // player selects the minimum of the scores
             }
             return score;
         }
@@ -322,8 +338,8 @@ public class Player {
         Player turn = this;
         int score = Integer.MIN_VALUE;                                                      // score set to -INFINITY
 
-        int alpha = Integer.MAX_VALUE;                                                      // alpha set to INFINITY
-        int beta = Integer.MIN_VALUE;                                                       // beta set to -INFINITY
+        int alpha = Integer.MIN_VALUE;                                                      // alpha set to -INFINITY
+        int beta = Integer.MAX_VALUE;                                                       // beta set to +INFINITY
 
         ArrayList<Integer>possible_moves = board.possible_moves(this);                  // getting all the possible moves of the board
 
@@ -336,6 +352,8 @@ public class Player {
             opponent = new Player(opponent_num, player_type, depth_limit, heuristic_choice);
 
             int temp_score = opponent.ab_min_value(new_board, depth - 1, turn, alpha, beta);          // opponent runs min_value
+            System.out.println(temp_score);
+
             if(temp_score > score)                                                          // player1 takes the max of the result
             {
                 score = temp_score;
@@ -343,7 +361,7 @@ public class Player {
             }
             alpha = Math.max(score, alpha);
         }
-        System.out.println("Score for Player " + player_num + ": " + score);
+//        System.out.println("Score for Player " + player_num + ": " + score);
         return move;
     }
 
@@ -370,6 +388,14 @@ public class Player {
             else if(heuristic_choice == 5)
             {
                 return turn.close_to_storage(board);
+            }
+            else if(heuristic_choice == 6)
+            {
+                return turn.captured_stones(board);
+            }
+            else if(heuristic_choice == 7)
+            {
+                return turn.additional_move_earned(board);
             }
             else
                 return -1;
@@ -423,6 +449,14 @@ public class Player {
             {
                 return turn.close_to_storage(board);
             }
+            else if(heuristic_choice == 6)
+            {
+                return turn.captured_stones(board);
+            }
+            else if(heuristic_choice == 7)
+            {
+                return turn.additional_move_earned(board);
+            }
             else
                 return -1;
 
@@ -454,6 +488,7 @@ public class Player {
 
     //// -------------------------------- HEURISTICS ------------------------- ////
 
+    // estimates using simple probability -- //
     public int h_probability(Board board)
     {
         if(board.has_won(player_num))
@@ -464,45 +499,46 @@ public class Player {
             return 50;
     }
 
+    // -- estimates using score stones difference -- //
     public int score_stones_diff(Board board)
     {
         return (board.score_bins[player_num-1] - board.score_bins[opponent_num-1]);
     }
 
+    // -- estimates using stones on side + stones in storage -- //
     public int stones_diff(Board board)
     {
         int score_diff = (board.score_bins[player_num-1] - board.score_bins[opponent_num-1]);
 
-        int self_storage = 0;
-        int opponent_storage = 0;
+        int self_side_stones = 0;
+        int opponent_side_stones = 0;
 
         if(player_num == 1)
         {
             for(int i=0; i<board.no_of_bins; i++)
             {
-                self_storage += board.p1_bins[i];
-                opponent_storage += board.p2_bins[i];
+                self_side_stones += board.p1_bins[i];
+                opponent_side_stones += board.p2_bins[i];
             }
         }
         else
         {
             for(int i=0; i<board.no_of_bins; i++)
             {
-                self_storage += board.p2_bins[i];
-                opponent_storage += board.p1_bins[i];
+                self_side_stones += board.p2_bins[i];
+                opponent_side_stones += board.p1_bins[i];
             }
         }
 
-        int storage_diff = self_storage - opponent_storage;
+        int side_bins_diff = self_side_stones - opponent_side_stones;
 
-        return 100 * score_diff + 50 * storage_diff;
+        return 100 * score_diff + 50 * side_bins_diff;                    // score stones are given a higher weight since they are guaranteed
     }
 
+    // -- measures how close a player is to victory depending on
+    // if his storage is already close to containing half of total number of stones -- //
     public int close_to_victory(Board board)
     {
-        // measures how close a player is to victory depending on
-        // if his storage is already close to containing half of total number of stones
-
         int no_of_bins = board.no_of_bins;                                      // e.g. 6
         int stones_each_bin = board.stones_each_bin;                            // e.g. 4
 
@@ -516,19 +552,12 @@ public class Player {
         else
             self_stones = board.score_bins[1];
 
-        // if goal contains more than half of total stones
-        if(self_stones > total_stones/2)
-            return 100;
+        int close_to_half = total_stones/2 - self_stones;
 
-        // if goal contains stones in range [total_stones/2-stones_each_bin, total_stones]
-        // e.g. [20, 48]
-        else if((self_stones>(total_stones/2-stones_each_bin)) && (self_stones<(total_stones/2)) )
-            return 50;
-
-        else
-            return 0;
+        return (int) Math.floor(1000 * Math.pow(1.1, -close_to_half));          // 1000 * 1.1^(-how close to half)  // if close -> returns a higher value
     }
 
+    // -- stones that are not going to be overflowed to opponent's side -- //
     public int close_to_storage(Board board)
     {
         int stones;
@@ -541,40 +570,41 @@ public class Player {
         else {
             self_bins = board.p2_bins;
         }
-        for(int i=0; i<self_bins.length; i++)
+
+        for(int i=0; i<self_bins.length; i++)                       // for each bins
         {
-            stones = self_bins[i];
+            stones = self_bins[i];                                  // take the stones
             int self_bins_limit = (board.no_of_bins)-i;             // limit for a bin to overflow      // i.e. bin 2 can hold 5 bins that won't overflow  // 6-(2-1) = 5
 
             if(stones < self_bins_limit)
             {
-                stones_close_to_storage += stones;
+                stones_close_to_storage += stones;                  // if stones wil not overflow to opponent's side, count them as own stones
             }
             else
             {
-                int stones_left = stones;
+                int stones_left = stones;                           // all the stones left
 
-                stones_left -= self_bins_limit;
-                stones_close_to_storage += self_bins_limit;
+                stones_left -= self_bins_limit;                     // take the limit no. of stones from all the stones left
+                stones_close_to_storage += self_bins_limit;         // put it in storage
 
                 int iteration = 0;
 
                 while (stones_left > 0)
                 {
-                    if(iteration%2==0)
+                    if(iteration%2==0)                              // put the stones on the opponent's side on first iteration
                     {
                         stones_left -= board.no_of_bins;
                     }
-                    else
+                    else                                            // put the stones on self side on next iteration, and keep doing
                     {
-                        if(stones_left > board.no_of_bins+1)
+                        if(stones_left > board.no_of_bins+1)                            // if overflows
                         {
-                            stones_left -= (board.no_of_bins + 1);
-                            stones_close_to_storage += (board.no_of_bins+1);
+                            stones_left -= (board.no_of_bins + 1);                      // take the limit no. stones
+                            stones_close_to_storage += (board.no_of_bins+1);            // put them in self side
                         }
-                        else
+                        else                                                            // if no overflow
                         {
-                            stones_close_to_storage += stones_left;
+                            stones_close_to_storage += stones_left;                     // put them all in self side
                             stones_left = 0;
                         }
                     }
@@ -583,5 +613,44 @@ public class Player {
             }
         }
         return stones_close_to_storage;
+    }
+
+    // -- estimates using score stones and captured stones -- //
+    public int captured_stones(Board board)
+    {
+        return 100 * score_stones_diff(board) + 150 * board.get_captured_stones(player_num);
+    }
+
+    public int additional_move_earned(Board board)
+    {
+        int score_diff = (board.score_bins[player_num-1] - board.score_bins[opponent_num-1]);
+
+        int self_side_stones = 0;
+        int opponent_side_stones = 0;
+
+        if(player_num == 1)
+        {
+            for(int i=0; i<board.no_of_bins; i++)
+            {
+                self_side_stones += board.p1_bins[i];
+                opponent_side_stones += board.p2_bins[i];
+            }
+        }
+        else
+        {
+            for(int i=0; i<board.no_of_bins; i++)
+            {
+                self_side_stones += board.p2_bins[i];
+                opponent_side_stones += board.p1_bins[i];
+            }
+        }
+
+        int side_bins_diff = self_side_stones - opponent_side_stones;
+
+        int additional_move = 0;
+        if(board.get_bonus_move(player_num))
+            additional_move = 1;
+
+        return 100 * score_diff + 50 * side_bins_diff + 500 * additional_move;    // score stones are given a higher weight, bonus move given the highest
     }
 }

@@ -8,6 +8,12 @@ public class Board {
     public int[] p1_bins;
     public int[] p2_bins;
 
+    private int captured_stones_p1;
+    private int captured_stones_p2;
+
+    private boolean bonus_move_p1;
+    private boolean bonus_move_p2;
+
     public Board(int no_of_bins, int stones_each_bin)
     {
         this.no_of_bins = no_of_bins;
@@ -32,6 +38,12 @@ public class Board {
 
         score_bins[0] = another_board.score_bins[0];
         score_bins[1] = another_board.score_bins[1];
+
+        this.captured_stones_p1 = another_board.captured_stones_p1;
+        this.captured_stones_p2 = another_board.captured_stones_p2;
+
+        this.bonus_move_p1 = another_board.bonus_move_p1;
+        this.bonus_move_p2 = another_board.bonus_move_p2;
     }
 
     public void reset()
@@ -48,6 +60,23 @@ public class Board {
 
         score_bins[0] = 0;                          // score is 0 initially
         score_bins[1] = 0;
+
+        captured_stones_p1 = 0;
+        captured_stones_p2 = 0;
+
+        bonus_move_p1 = false;
+        bonus_move_p2 = false;
+
+//        p1_bins[0] = 0;
+//        p1_bins[1] = 3;
+//        p1_bins[2] = 4;
+//
+//        p2_bins[0] = 0;
+//        p2_bins[1] = 1;
+//        p2_bins[2] = 1;
+//
+//        score_bins[0] = 1;
+//        score_bins[1] = 2;
     }
 
     public void print_board()
@@ -87,6 +116,53 @@ public class Board {
         System.out.println("\n");
         System.out.println("\t\tP L A Y E R  1");
         System.out.print("\n");
+    }
+
+    public void set_captured_stones(int x, int player_num)
+    {
+        if(player_num == 1)
+            captured_stones_p1 = x;
+        else
+            captured_stones_p2 = x;
+    }
+
+    public int get_captured_stones(int player_num)
+    {
+        int temp;
+        if(player_num == 1)
+        {
+            temp = captured_stones_p1;
+            captured_stones_p1 = 0;
+        }
+        else
+        {
+            temp = captured_stones_p2;
+            captured_stones_p2 = 0;
+        }
+        return temp;
+    }
+
+    public void set_bonus_move(int player_num)
+    {
+        if(player_num == 1)
+            bonus_move_p1 = true;
+        else
+            bonus_move_p2 = true;
+    }
+
+    public boolean get_bonus_move(int player_num) {
+        boolean temp;
+        if (player_num == 1)
+        {
+            temp = bonus_move_p1;
+            bonus_move_p1 = false;
+        }
+        else
+        {
+            temp = bonus_move_p2;
+            bonus_move_p2 = false;
+        }
+        return temp;
     }
 
     // -- checks if a move is legal -- //
@@ -185,10 +261,13 @@ public class Board {
 
         if((self_bins == init_cups) && (self_bins[bin-2]==1) && (opponent_bins[no_of_bins-bin+1]!=0))    // if we end up on an empty bin
         {
-            score_bins[p.get_player_num()-1] += opponent_bins[no_of_bins-bin+1];    // steal
+            int stolen_stones = opponent_bins[no_of_bins-bin+1];
+            score_bins[p.get_player_num()-1] += stolen_stones;                      // steal
             opponent_bins[no_of_bins-bin+1] = 0;                                    // opponent bin = 0
             score_bins[p.get_player_num()-1]++;                                     // count that 1 stone of ours too
             self_bins[bin-2] = 0;                                                   // make bin empty
+
+            set_captured_stones(stolen_stones, p.player_num);
         }
         return false;
     }
@@ -196,6 +275,9 @@ public class Board {
     public boolean single_move(Player p, int bin)
     {
         boolean move_again = single_move_util(p, bin);
+
+        if(move_again)
+            set_bonus_move(p.get_player_num());
 
         if(game_over())                                         // if game is over
         {                                                       // get all the stones of a player in his score_bin
@@ -308,6 +390,7 @@ public class Board {
 
                 move_count++;
             }
+
             // swap the players before next turn
             temp = current_player;
             current_player = waiting_player;
