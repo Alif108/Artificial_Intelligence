@@ -103,16 +103,17 @@ public class Main {
 //        Player p2 = new Player(2, 1, 2, 2);
 //
 //        board.print_board();
+//        System.out.println(p1.close_to_storage(board, p1.player_num));
+//        System.out.println(p2.close_to_storage(board, p2.player_num));
 //
 //        board.single_move(p1, 3);
 //        board.print_board();
-//        System.out.println(board.get_bonus_move(1));
+//        System.out.println(p1.close_to_storage(board, p1.player_num));
+//        System.out.println(p2.close_to_storage(board, p2.player_num));
 //
-//        board.single_move(p2, 3);
+//        board.single_move(p2, 1);
 //        board.print_board();
-//
-//        System.out.println(p1.score_stones_diff(board));
-
-//        System.out.println(p1.alpha_beta_move(board, 2));
+//        System.out.println(p1.close_to_storage(board, p1.player_num));
+//        System.out.println(p2.close_to_storage(board, p2.player_num));
     }
 }

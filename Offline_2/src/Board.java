@@ -8,9 +8,11 @@ public class Board {
     public int[] p1_bins;
     public int[] p2_bins;
 
+    // captures stones records are needed for heuristic
     private int captured_stones_p1;
     private int captured_stones_p2;
 
+    // bonus move records are needed for heuristic
     private boolean bonus_move_p1;
     private boolean bonus_move_p2;
 
@@ -46,6 +48,7 @@ public class Board {
         this.bonus_move_p2 = another_board.bonus_move_p2;
     }
 
+    // resets the board to initial position -- //
     public void reset()
     {
         score_bins = new int[2];                    // 2 score bins
@@ -54,7 +57,7 @@ public class Board {
 
         for (int i=0; i<no_of_bins; i++)
         {
-            p1_bins[i] = stones_each_bin;                         // 4 stones in each bin
+            p1_bins[i] = stones_each_bin;           // 4 stones in each bin
             p2_bins[i] = stones_each_bin;
         }
 
@@ -118,6 +121,7 @@ public class Board {
         System.out.print("\n");
     }
 
+    // -- sets the captured stone count -- //
     public void set_captured_stones(int x, int player_num)
     {
         if(player_num == 1)
@@ -126,6 +130,7 @@ public class Board {
             captured_stones_p2 = x;
     }
 
+    // -- returns the captured stone count and makes it zero -- //
     public int get_captured_stones(int player_num)
     {
         int temp;
@@ -142,6 +147,7 @@ public class Board {
         return temp;
     }
 
+    // -- sets the bonus flag on -- //
     public void set_bonus_move(int player_num)
     {
         if(player_num == 1)
@@ -150,6 +156,7 @@ public class Board {
             bonus_move_p2 = true;
     }
 
+    // -- returns the bonus flag and turns it off -- //
     public boolean get_bonus_move(int player_num) {
         boolean temp;
         if (player_num == 1)
@@ -272,12 +279,13 @@ public class Board {
         return false;
     }
 
+    // -- simulates the single move and checks whether game over -- //
     public boolean single_move(Player p, int bin)
     {
         boolean move_again = single_move_util(p, bin);
 
         if(move_again)
-            set_bonus_move(p.get_player_num());
+            set_bonus_move(p.get_player_num());                 // if bonus turn occurs, set the bonus flag on  -> useful while predicting
 
         if(game_over())                                         // if game is over
         {                                                       // get all the stones of a player in his score_bin
@@ -303,20 +311,24 @@ public class Board {
         boolean p1_empty = true;
         boolean p2_empty = true;
 
-        for(int i=0; i<p1_bins.length; i++)
-        {
-            if(p1_bins[i] != 0)                     // if one bin is not empty
+        for (int p1_bin : p1_bins) {
+            if (p1_bin != 0)                        // if one bin is not empty
+            {
                 p1_empty = false;                   // game not over for p1
+                break;
+            }
         }
         if(p1_empty)
             return true;
 
-        for(int i=0; i<p2_bins.length; i++)
-        {
-            if(p2_bins[i] != 0)                     // if one bin is not empty
+        for (int p2_bin : p2_bins) {
+            if (p2_bin != 0)                        // if one bin is not empty
+            {
                 p2_empty = false;                   // game not over for p2
+                break;
+            }
         }
-        return p1_empty || p2_empty;
+        return p2_empty;
     }
 
     // -- returns if the Player has won or not -- //
@@ -357,6 +369,7 @@ public class Board {
             return false;
     }
 
+    // -- play the game -- //
     public void play_game(Player p1, Player p2)
     {
         reset();
