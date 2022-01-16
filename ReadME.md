@@ -10,3 +10,8 @@ Implementing n-puzzle problem with A* search algorithm using different heuristic
 ## Offline_2
 
 Implementing Mancala, a two-player board game using Adversarial Search. Minimax as well as Minimax with Alpha Beta Pruning has been applied here with different heursitics and depth-limit.
+
+
+## Online on CSP (Constraint Satisfaction Problem)
+
+Solving classic Sudoku and Killer_Sudoku (also called Sumdoku) with java based CSP solver Choco-solver.
