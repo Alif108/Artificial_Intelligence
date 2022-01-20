@@ -15,3 +15,8 @@ Implementing Mancala, a two-player board game using Adversarial Search. Minimax 
 ## Online on CSP (Constraint Satisfaction Problem)
 
 Solving classic Sudoku and Killer_Sudoku (also called Sumdoku) with java based CSP solver Choco-solver.
+
+
+## Simulated Annealing
+
+Implementing local search algorithm "Simulated Annealing" in python
