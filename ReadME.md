@@ -29,7 +29,11 @@ Implementing local search algorithm "Simulated Annealing" in python
 
 ## A star search
 
-Implementation of the n-puzzle problem (in python), grid solving problem and shortest path finding problem using A* search.
+Implementation of the 
+- n-puzzle problem (in python) 
+- grid solving problem 
+- shortest path finding problem 
+using A* search.
 
 ## Prolog
 
